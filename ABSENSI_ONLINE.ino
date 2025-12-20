@@ -3,153 +3,124 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
+#include <time.h>
 
-// === KONFIGURASI PIN ===
+// ================= PIN =================
 #define SS_PIN  D2
 #define RST_PIN D1
-#define BUZZER  D8   // GPIO15
+#define BUZZER  D8
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// === KONFIGURASI WIFI & API ===
-const char* ssid = "Infinix";
-const char* password = "yttaytta";
+// ============ WIFI ============
+const char* ssid = "2D_HOME";
+const char* password = "mieayamenak";
 
-// Ganti dengan endpoint POST API Gateway kamu
-const char* apiURL = "https://YOUR_API_GATEWAY_URL/siswa";
+// ============ NTP ============
+#define GMT_OFFSET_SEC  7 * 3600
+#define DAYLIGHT_OFFSET_SEC 0
 
-// === SETUP ===
+// ============ DATA SISWA ============
+String uidList[]  = {"9215d29", "f2c8bdd", "2945ac29"};
+String namaList[] = {"HAMDAN",  "SALSA",  "NAURA"};
+const int jumlahSiswa = 3;
+
+// =====================================
 void setup() {
-  pinMode(BUZZER, OUTPUT);
-  digitalWrite(BUZZER, LOW);
   Serial.begin(115200);
-  delay(1000);
+  pinMode(BUZZER, OUTPUT);
 
-  Serial.println("\n=== IoT Absensi AWS ===");
-  Serial.println("Inisialisasi perangkat...");
-
-  Wire.begin(D4, D3); // SDA = D4 (GPIO2), SCL = D3 (GPIO0)
+  Wire.begin(D3, D4);
   lcd.init();
   lcd.backlight();
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("IoT Absensi AWS");
-  lcd.setCursor(0, 1);
-  lcd.print("Starting...");
 
-  // Inisialisasi WiFi
-  WiFi.begin(ssid, password);
-  Serial.print("Menghubungkan WiFi");
-  lcd.clear();
-  lcd.print("WiFi Connecting");
-  int retry = 0;
-  while (WiFi.status() != WL_CONNECTED && retry < 20) {
-    delay(500);
-    Serial.print(".");
-    retry++;
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\n✅ WiFi Terhubung!");
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
-    lcd.clear();
-    lcd.print("WiFi Connected");
-    delay(1000);
-  } else {
-    Serial.println("\n❌ GAGAL: Tidak bisa terhubung WiFi!");
-    lcd.clear();
-    lcd.print("WiFi Failed!");
-    while (true); // berhenti total
-  }
-
-  // Inisialisasi RFID
   SPI.begin();
   rfid.PCD_Init();
-  delay(50);
 
-  byte v = rfid.PCD_ReadRegister(MFRC522::VersionReg);
-  if (v == 0x00 || v == 0xFF) {
-    Serial.println("❌ GAGAL: Modul RFID tidak terdeteksi!");
-    lcd.clear();
-    lcd.print("RFID Not Found!");
-    while (true); // stop agar mudah debug
-  } else {
-    Serial.println("✅ RFID OK!");
+  // ===== WIFI =====
+  lcd.clear();
+  lcd.print("Connecting WiFi");
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
 
+  Serial.println("\nWiFi Connected");
   lcd.clear();
-  lcd.print("Scan your card...");
+  lcd.print("WiFi Connected");
+
+  // ===== NTP =====
+  configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, 
+             "pool.ntp.org", "time.nist.gov");
+
+  delay(1500);
+  lcd.clear();
+  lcd.print("Scan Kartu...");
 }
 
-// === LOOP ===
+// =====================================
 void loop() {
+
   if (!rfid.PICC_IsNewCardPresent()) return;
   if (!rfid.PICC_ReadCardSerial()) return;
 
-  String uidString = "";
+  // ==== BACA UID ====
+  String uid = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
-    uidString += String(rfid.uid.uidByte[i], HEX);
+    uid += String(rfid.uid.uidByte[i], HEX);
   }
 
-  Serial.println("==============================");
   Serial.print("UID: ");
-  Serial.println(uidString);
+  Serial.println(uid);
+
+  // ==== CEK UID ====
+  int index = -1;
+  for (int i = 0; i < jumlahSiswa; i++) {
+    if (uid.equalsIgnoreCase(uidList[i])) {
+      index = i;
+      break;
+    }
+  }
+
   lcd.clear();
-  lcd.print("Card Detected!");
-  lcd.setCursor(0, 1);
-  lcd.print(uidString);
 
-  tone(BUZZER, 3000, 400);
-  delay(500);
-
-  // === KIRIM DATA KE API ===
-  if (WiFi.status() == WL_CONNECTED) {
-    WiFiClient client;
-    HTTPClient http;
-
-    http.begin(client, apiURL);
-    http.addHeader("Content-Type", "application/json");
-
-    // Data JSON
-    String body = "{\"nama\":\"" + uidString + "\",\"pesan\":\"Telah Absen!\"}";
-    int httpCode = http.POST(body);
-
-    if (httpCode > 0) {
-      Serial.printf("HTTP Response: %d\n", httpCode);
-      String response = http.getString();
-      Serial.println("Response Body:");
-      Serial.println(response);
-
-      if (httpCode == 200) {
-        lcd.clear();
-        lcd.print("✅ Absen Success");
-        tone(BUZZER, 1500, 200);
-      } else {
-        lcd.clear();
-        lcd.print("❌ Absen Failed!");
-        tone(BUZZER, 1000, 200);
-      }
-    } else {
-      Serial.println("❌ GAGAL: Tidak dapat mengirim data ke API!");
-      Serial.println(http.errorToString(httpCode));
-      lcd.clear();
-      lcd.print("API Error!");
+  if (index != -1) {
+    // ==== AMBIL WAKTU NTP ====
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+      lcd.print("Waktu Error");
+      return;
     }
 
-    http.end();
+    char waktu[6];
+    sprintf(waktu, "%02d.%02d", timeinfo.tm_hour, timeinfo.tm_min);
+
+    // ==== LCD FORMAT ====
+    lcd.setCursor(0, 0);
+    lcd.print(namaList[index]);
+    lcd.setCursor(10, 0);
+    lcd.print("|PUKUL");
+
+    lcd.setCursor(0, 1);
+    lcd.print("XII TJKT 1|");
+    lcd.print(waktu);
+
+    Serial.println("ABSEN BERHASIL");
+    tone(BUZZER, 2000, 200);
+
   } else {
-    Serial.println("❌ GAGAL: WiFi tidak aktif!");
-    lcd.clear();
-    lcd.print("WiFi Lost!");
+    lcd.print("KARTU DITOLAK");
+    tone(BUZZER, 800, 400);
+    Serial.println("KARTU TIDAK TERDAFTAR");
   }
+
+  delay(3000);
+  lcd.clear();
+  lcd.print("Scan Kartu...");
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
-
-  delay(2000);
-  lcd.clear();
-  lcd.print("Scan next card...");
 }
