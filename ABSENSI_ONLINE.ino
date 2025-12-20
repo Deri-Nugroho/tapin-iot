@@ -21,6 +21,11 @@ const char* password = "mieayamenak";
 #define GMT_OFFSET_SEC  7 * 3600
 #define DAYLIGHT_OFFSET_SEC 0
 
+// ============ MASTER CARD ============
+const String MASTER_UID = "f36573";  // GANTI UID MASTER
+
+bool readMode = false;  // false = absensi, true = baca UID
+
 // ============ DATA SISWA ============
 String uidList[]  = {"9215d29", "f2c8bdd", "2945ac29"};
 String namaList[] = {"HAMDAN",  "SALSA",  "NAURA"};
@@ -42,20 +47,16 @@ void setup() {
   lcd.clear();
   lcd.print("Connecting WiFi");
   WiFi.begin(ssid, password);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
   }
 
-  Serial.println("\nWiFi Connected");
-  lcd.clear();
-  lcd.print("WiFi Connected");
-
   // ===== NTP =====
-  configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, 
+  configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC,
              "pool.ntp.org", "time.nist.gov");
 
+  lcd.clear();
+  lcd.print("Mode: ABSENSI");
   delay(1500);
   lcd.clear();
   lcd.print("Scan Kartu...");
@@ -76,7 +77,43 @@ void loop() {
   Serial.print("UID: ");
   Serial.println(uid);
 
-  // ==== CEK UID ====
+  // ===== MASTER CARD =====
+  if (uid.equalsIgnoreCase(MASTER_UID)) {
+    readMode = !readMode;
+
+    lcd.clear();
+    if (readMode) {
+      lcd.print("MODE: READ UID");
+      Serial.println(">> MODE BACA UID AKTIF");
+      tone(BUZZER, 3000, 200);
+    } else {
+      lcd.print("MODE: ABSENSI");
+      Serial.println(">> MODE ABSENSI AKTIF");
+      tone(BUZZER, 1500, 200);
+    }
+
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+    return;
+  }
+
+  // ===== MODE BACA UID (STUCK) =====
+  if (readMode) {
+    lcd.clear();
+    lcd.print("UID TERDETEKSI");
+    lcd.setCursor(0, 1);
+    lcd.print(uid);
+
+    Serial.println("READ UID MODE");
+
+    tone(BUZZER, 2000, 100);
+
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+    return;  // TETAP DI MODE INI
+  }
+
+  // ===== MODE ABSENSI =====
   int index = -1;
   for (int i = 0; i < jumlahSiswa; i++) {
     if (uid.equalsIgnoreCase(uidList[i])) {
@@ -88,17 +125,12 @@ void loop() {
   lcd.clear();
 
   if (index != -1) {
-    // ==== AMBIL WAKTU NTP ====
     struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) {
-      lcd.print("Waktu Error");
-      return;
-    }
+    getLocalTime(&timeinfo);
 
     char waktu[6];
     sprintf(waktu, "%02d.%02d", timeinfo.tm_hour, timeinfo.tm_min);
 
-    // ==== LCD FORMAT ====
     lcd.setCursor(0, 0);
     lcd.print(namaList[index]);
     lcd.setCursor(10, 0);
@@ -108,13 +140,10 @@ void loop() {
     lcd.print("XII TJKT 1|");
     lcd.print(waktu);
 
-    Serial.println("ABSEN BERHASIL");
     tone(BUZZER, 2000, 200);
-
   } else {
     lcd.print("KARTU DITOLAK");
     tone(BUZZER, 800, 400);
-    Serial.println("KARTU TIDAK TERDAFTAR");
   }
 
   delay(3000);
