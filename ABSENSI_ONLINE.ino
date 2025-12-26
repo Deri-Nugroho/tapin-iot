@@ -22,7 +22,7 @@ const char* password = "process.env.PASSWD";
 #define DAYLIGHT_OFFSET_SEC 0
 
 // ============ MASTER CARD ============
-const String MASTER_UID = "f36573";  // GANTI UID MASTER
+const String MASTER_UID = "29288159";  // GANTI UID MASTER
 
 bool readMode = false;  // false = absensi, true = baca UID
 
