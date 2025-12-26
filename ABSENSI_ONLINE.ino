@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <time.h>
 
 // ================= PIN =================
@@ -14,8 +15,12 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ============ WIFI ============
-const char* ssid = "process.env.SSID";
-const char* password = "process.env.PASSWD";
+const char* ssid = "2D_HOME";       // ganti SSID
+const char* password = "mieayamenak"; // ganti password
+
+// ============ SERVER ============
+const String SERVER_URL = "http://192.168.1.4:3000/api/attendance"; // ganti sesuai IP server
+WiFiClient client;
 
 // ============ NTP ============
 #define GMT_OFFSET_SEC  7 * 3600
@@ -23,13 +28,17 @@ const char* password = "process.env.PASSWD";
 
 // ============ MASTER CARD ============
 const String MASTER_UID = "29288159";  // GANTI UID MASTER
-
 bool readMode = false;  // false = absensi, true = baca UID
 
 // ============ DATA SISWA ============
 String uidList[]  = {"9215d29", "f2c8bdd", "2945ac29"};
 String namaList[] = {"HAMDAN",  "SALSA",  "NAURA"};
 const int jumlahSiswa = 3;
+
+// ============ SCAN CONTROL ============
+String lastUID = "";
+unsigned long lastScanTime = 0;
+const unsigned long scanDelay = 5000; // 5 detik minimal antar scan
 
 // =====================================
 void setup() {
@@ -73,7 +82,6 @@ void loop() {
   for (byte i = 0; i < rfid.uid.size; i++) {
     uid += String(rfid.uid.uidByte[i], HEX);
   }
-
   Serial.print("UID: ");
   Serial.println(uid);
 
@@ -97,7 +105,7 @@ void loop() {
     return;
   }
 
-  // ===== MODE BACA UID (STUCK) =====
+  // ===== MODE BACA UID =====
   if (readMode) {
     lcd.clear();
     lcd.print("UID TERDETEKSI");
@@ -110,8 +118,24 @@ void loop() {
 
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
-    return;  // TETAP DI MODE INI
+    return;
   }
+
+  // ===== CEK DUPLIKAT SCAN =====
+  if (uid.equalsIgnoreCase(lastUID) && (millis() - lastScanTime) < scanDelay) {
+    Serial.println("Duplicate scan ignored");
+    lcd.clear();
+    lcd.print("Scan Ulang Dihindari");
+    delay(1500);
+    lcd.clear();
+    lcd.print("Scan Kartu...");
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+    return;
+  }
+
+  lastUID = uid;
+  lastScanTime = millis();
 
   // ===== MODE ABSENSI =====
   int index = -1;
@@ -141,6 +165,9 @@ void loop() {
     lcd.print(waktu);
 
     tone(BUZZER, 2000, 200);
+
+    // === KIRIM KE SERVER ===
+    sendAttendanceToServer(uidList[index], namaList[index], String(waktu));
   } else {
     lcd.print("KARTU DITOLAK");
     tone(BUZZER, 800, 400);
@@ -152,4 +179,30 @@ void loop() {
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
+}
+
+// =====================================
+// === FUNGSI KIRIM DATA KE SERVER ===
+void sendAttendanceToServer(String uid, String nama, String waktu) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+
+    http.begin(client, SERVER_URL);  // menggunakan WiFiClient
+    http.addHeader("Content-Type", "application/json");
+
+    String payload = "{\"uid\":\"" + uid + "\", \"nama\":\"" + nama + "\", \"waktu\":\"" + waktu + "\"}";
+
+    int httpResponseCode = http.POST(payload);
+
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println("Server Response: " + response); // LOG RESPONSE
+    } else {
+      Serial.println("Error sending data: " + String(httpResponseCode));
+    }
+
+    http.end();
+  } else {
+    Serial.println("WiFi disconnected!");
+  }
 }
