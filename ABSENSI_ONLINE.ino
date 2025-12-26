@@ -14,8 +14,8 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ============ WIFI ============
-const char* ssid = "2D_HOME";
-const char* password = "mieayamenak";
+const char* ssid = "process.env.SSID";
+const char* password = "process.env.PASSWD";
 
 // ============ NTP ============
 #define GMT_OFFSET_SEC  7 * 3600

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <!-- Auto refresh tiap 30 detik -->
+    <meta http-equiv="refresh" content="30">
+</head>
+<body>
+
+<h1>ABSENSI SISWA</h1>
+<p style="text-align:center;">Tanggal: <strong><%= tanggal %></strong></p>
+
+<table border="1" width="90%" align="center">
+    <tr>
+        <th>No</th>
+        <th>Nama Siswa</th>
+        <th>Kelas</th>
+        <th>Status</th>
+        <th>Jam Absen</th>
+    </tr>
+
+    <% data.forEach((row, index) => { %>
+    <tr>
+        <td><%= index + 1 %></td>
+        <td><%= row.nama_siswa %></td>
+        <td><%= row.nama_kelas %></td>
+
+        <td>
+            <% if (!row.status) { %>
+                <span style="color:red;">BELUM HADIR</span>
+            <% } else if (row.status === 'hadir') { %>
+                <span style="color:green;">HADIR</span>
+            <% } else { %>
+                <span style="color:orange;">TERLAMBAT</span>
+            <% } %>
+        </td>
+
+        <td>
+            <%= row.jam_masuk ? row.jam_masuk : '-' %>
+        </td>
+    </tr>
+    <% }) %>
+</table>
+
+<footer style="text-align:center;margin-top:20px;">
+    <small>© Sistem Absensi RFID — Project IoT</small>
+</footer>
+
+</body>
+</html>
