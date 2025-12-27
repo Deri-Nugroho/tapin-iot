@@ -155,20 +155,39 @@ void loop() {
     char waktu[6];
     sprintf(waktu, "%02d.%02d", timeinfo.tm_hour, timeinfo.tm_min);
 
-    lcd.setCursor(0, 0);
-    lcd.print(namaList[index]);
-    lcd.setCursor(10, 0);
-    lcd.print("|PUKUL");
+    // KIRIM KE SERVER & AMBIL RESPONSE
+    String response = sendAttendanceToServer(uidList[index], namaList[index], String(waktu));
 
-    lcd.setCursor(0, 1);
-    lcd.print("XII TJKT 1|");
-    lcd.print(waktu);
+    // ===== JIKA SUKSES =====
+    if (response.indexOf("\"success\":true") != -1) {
+      lcd.setCursor(0, 0);
+      lcd.print(namaList[index]);
+      lcd.setCursor(10, 0);
+      lcd.print("|PUKUL");
 
-    tone(BUZZER, 2000, 200);
+      lcd.setCursor(0, 1);
+      lcd.print("XII TJKT 1|");
+      lcd.print(waktu);
 
-    // === KIRIM KE SERVER ===
-    sendAttendanceToServer(uidList[index], namaList[index], String(waktu));
-  } else {
+      tone(BUZZER, 2000, 200);
+    }
+    // ===== JIKA SUDAH ABSEN =====
+    else if (response.indexOf("Sudah melakukan absensi") != -1) {
+      lcd.clear();
+      lcd.print("SUDAH ABSEN");
+      lcd.setCursor(0, 1);
+      lcd.print("HARI INI");
+
+      tone(BUZZER, 700, 400);
+    }
+    // ===== ERROR LAIN =====
+    else {
+      lcd.clear();
+      lcd.print("ABSENSI GAGAL");
+      tone(BUZZER, 500, 400);
+    }
+  }
+  else {
     lcd.print("KARTU DITOLAK");
     tone(BUZZER, 800, 400);
   }
@@ -183,26 +202,27 @@ void loop() {
 
 // =====================================
 // === FUNGSI KIRIM DATA KE SERVER ===
-void sendAttendanceToServer(String uid, String nama, String waktu) {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-
-    http.begin(client, SERVER_URL);  // menggunakan WiFiClient
-    http.addHeader("Content-Type", "application/json");
-
-    String payload = "{\"uid\":\"" + uid + "\", \"nama\":\"" + nama + "\", \"waktu\":\"" + waktu + "\"}";
-
-    int httpResponseCode = http.POST(payload);
-
-    if (httpResponseCode > 0) {
-      String response = http.getString();
-      Serial.println("Server Response: " + response); // LOG RESPONSE
-    } else {
-      Serial.println("Error sending data: " + String(httpResponseCode));
-    }
-
-    http.end();
-  } else {
-    Serial.println("WiFi disconnected!");
+String sendAttendanceToServer(String uid, String nama, String waktu) {
+  if (WiFi.status() != WL_CONNECTED) {
+    return "WiFi disconnected";
   }
+
+  HTTPClient http;
+  http.begin(client, SERVER_URL);
+  http.addHeader("Content-Type", "application/json");
+
+  String payload = "{\"uid\":\"" + uid + "\", \"nama\":\"" + nama + "\", \"waktu\":\"" + waktu + "\"}";
+  int httpResponseCode = http.POST(payload);
+
+  String response = "";
+
+  if (httpResponseCode > 0) {
+    response = http.getString();
+    Serial.println("Server Response: " + response);
+  } else {
+    response = "HTTP Error";
+  }
+
+  http.end();
+  return response;
 }

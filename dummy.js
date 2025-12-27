@@ -16,7 +16,7 @@ require('dotenv').config();
         // 1️⃣ CEK / INSERT KELAS
         // =========================
         const [kelasRows] = await connection.execute(
-            "SELECT id_kelas FROM kelas WHERE nama_kelas = 'XII RPL 1'"
+            "SELECT id_kelas FROM kelas WHERE nama_kelas = 'XI TJKT 1'"
         );
 
         let idKelas;
@@ -27,7 +27,7 @@ require('dotenv').config();
         } else {
             const [result] = await connection.execute(
                 "INSERT INTO kelas (nama_kelas, wali_kelas) VALUES (?, ?)",
-                ['XII RPL 1', 'Dummy Wali']
+                ['XI TJKT 1', 'Dummy Wali']
             );
             idKelas = result.insertId;
             console.log("🆕 Kelas berhasil ditambahkan");
