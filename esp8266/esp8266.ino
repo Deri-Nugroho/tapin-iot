@@ -15,11 +15,11 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ============ WIFI ============
-const char* ssid = "2D_HOME";       // ganti SSID
-const char* password = "mieayamenak"; // ganti password
+const char* ssid = "Infinix";       // ganti SSID
+const char* password = "yttaytta"; // ganti password
 
 // ============ SERVER ============
-const String SERVER_URL = "http://192.168.1.4:3000/api/attendance"; // ganti sesuai IP server
+const String SERVER_URL = "http://192.168.0.205:3000/api/attendance"; // ganti sesuai IP server
 WiFiClient client;
 
 // ============ NTP ============

@@ -9,23 +9,27 @@ const { db } = require('../index'); // pakai koneksi dari index.js
 ========================= */
 router.get('/attendance', (req, res) => {
 
+    const todayWIB = new Date().toLocaleDateString('en-CA', {
+        timeZone: 'Asia/Jakarta'
+    });
+
     const query = `
         SELECT 
             s.nama_siswa,
             k.nama_kelas,
-            a.status,
+            IFNULL(a.status, 'BELUM HADIR') AS status,
             a.jam_masuk,
             a.tanggal
         FROM siswa s
         JOIN kelas k ON s.id_kelas = k.id_kelas
         LEFT JOIN absensi a 
             ON s.id_siswa = a.id_siswa
-            AND a.tanggal = CURDATE()
+            AND a.tanggal = ?
         WHERE s.status = 'aktif'
         ORDER BY k.nama_kelas, s.nama_siswa
     `;
 
-    db.query(query, (err, rows) => {
+    db.query(query, [todayWIB], (err, rows) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Database error');
@@ -34,7 +38,7 @@ router.get('/attendance', (req, res) => {
         res.render('attendance/public', {
             title: 'Absensi Siswa Hari Ini',
             data: rows,
-            tanggal: new Date().toLocaleDateString('id-ID')
+            tanggal: todayWIB
         });
     });
 });

@@ -3,12 +3,12 @@
 -- ========================================
 
 -- 1. Create database
-CREATE DATABASE IF NOT EXISTS sql12812771
+CREATE DATABASE IF NOT EXISTS sql12813198
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci;
 
 -- 2. Use database
-USE sql12812771;
+USE sql12813198;
 
 -- ========================================
 -- 3. Table admin
@@ -70,3 +70,24 @@ CREATE TABLE IF NOT EXISTS absensi (
     CONSTRAINT uc_absen_harian
         UNIQUE (id_siswa, tanggal)
 ) ENGINE=InnoDB;
+
+-- ========================================
+-- 7. DUMMY DATA (UNTUK TEST RFID & POSTMAN)
+-- ========================================
+
+-- Kelas
+INSERT INTO kelas (nama_kelas, wali_kelas)
+VALUES ('XI TJKT 1', 'Dummy Wali');
+
+-- Siswa (UID SESUAI ARDUINO)
+INSERT INTO siswa (uid_rfid, nis, nama_siswa, id_kelas)
+VALUES
+('9215d29',  '123001', 'HAMDAN', 1),
+('f2c8bdd',  '123002', 'SALSA',  1),
+('2945ac29', '123003', 'NAURA',  1);
+
+-- ========================================
+-- Hapus absensi hari ini
+-- ========================================
+-- DELETE FROM absensi
+-- WHERE tanggal = CURDATE();
