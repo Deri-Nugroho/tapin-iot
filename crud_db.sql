@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS siswa (
     uid_rfid VARCHAR(20) NOT NULL UNIQUE,
     nis VARCHAR(20) NOT NULL UNIQUE,
     nama_siswa VARCHAR(100) NOT NULL,
+    nama_tampil VARCHAR(50) NOT NULL,
     id_kelas INT NOT NULL,
     status ENUM('aktif','nonaktif') DEFAULT 'aktif',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -72,22 +73,29 @@ CREATE TABLE IF NOT EXISTS absensi (
 ) ENGINE=InnoDB;
 
 -- ========================================
--- 7. DUMMY DATA (UNTUK TEST RFID & POSTMAN)
+-- 7. DUMMY DATA
 -- ========================================
 
 -- Kelas
 INSERT INTO kelas (nama_kelas, wali_kelas)
 VALUES ('XI TJKT 1', 'Dummy Wali');
 
--- Siswa (UID SESUAI ARDUINO)
-INSERT INTO siswa (uid_rfid, nis, nama_siswa, id_kelas)
-VALUES
-('9215d29',  '123001', 'HAMDAN', 1),
-('f2c8bdd',  '123002', 'SALSA',  1),
-('2945ac29', '123003', 'NAURA',  1);
+-- Siswa (UID + nama tampil LCD)
+INSERT INTO siswa (uid_rfid, nis, nama_siswa, nama_tampil, id_kelas) VALUES
+('f36573',   '15667', 'Deri Nugroho',                 'Deri',          1),
+('39759029', '15672', 'Hamdan Allmashah',             'Hamdan',        1),
+('49cc6c29', '15681', 'Naura Athaayaa Kamiil',        'Naura',         1),
+('89876d29', '15687', 'Salsa Maulidina',              'Salsa',         1),
+('293f6a29', '15668', 'Dias Hafiidh Ega Maulana',     'Dias',          1),
+('497b7729', '15688', 'Muhammad Haikal Kamil',        'Haikal',        1),
+('896b6f29', '15691', 'Zaskia Embun Risqinanti',      'Zaskia',        1),
+('19567129', '15661', 'Awalina Nadya Putri',          'Awalina',       1),
+('9215d29',  '15658', 'Bagas Nur Setyo Budiarto',     'Bagas',         1),
+('29be2b29', '15663', 'Rizki Ganang Prakoso',         'Ganang',        1),
+('f2c8bdd',  '15670', 'Apriliatman Dwi Saputro',      'Apri',   1),
+('2945ac29', '15671', 'Bayu Aji Prasetya',            'Bayu',          1);
 
 -- ========================================
--- Hapus absensi hari ini
+-- 8. RESET ABSENSI HARI INI (OPTIONAL)
 -- ========================================
--- DELETE FROM absensi
--- WHERE tanggal = CURDATE();
+-- DELETE FROM absensi WHERE tanggal = CURDATE();

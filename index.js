@@ -54,8 +54,8 @@ function getAttendanceStatus() {
     const now = new Date();
     const minutesNow = now.getHours() * 60 + now.getMinutes();
     const start = 5 * 60;          // 05:00
-    const onTime = 15 * 60;          // 07:00
-    const end = 16 * 60 + 15;        // 09:15
+    const onTime = 18 * 60;          // 07:00
+    const end = 18 * 60 + 15;        // 09:15
 
     if (minutesNow < start || minutesNow > end) return null;
     return minutesNow <= onTime ? 'hadir' : 'terlambat';
@@ -107,7 +107,7 @@ app.post('/api/attendance', (req, res) => {
 
     // 3️⃣ Ambil data siswa berdasarkan UID
     const studentQuery = `
-        SELECT s.id_siswa, s.nama_siswa, k.nama_kelas
+        SELECT s.id_siswa, s.nama_tampil, k.nama_kelas
         FROM siswa s
         JOIN kelas k ON s.id_kelas = k.id_kelas
         WHERE s.uid_rfid = ? AND s.status = 'aktif'
@@ -158,7 +158,7 @@ app.post('/api/attendance', (req, res) => {
                     success: true,
                     message: 'Absensi berhasil',
                     data: {
-                        nama: siswa.nama_siswa,
+                        nama: siswa.nama_tampil,
                         kelas: siswa.nama_kelas,
                         status: status,
                         waktu: now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
