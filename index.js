@@ -54,8 +54,8 @@ function getAttendanceStatus() {
     const now = new Date();
     const minutesNow = now.getHours() * 60 + now.getMinutes();
     const start = 5 * 60;          // 05:00
-    const onTime = 18 * 60;          // 07:00
-    const end = 18 * 60 + 15;        // 09:15
+    const onTime = 17 * 60;          // 07:00
+    const end = 17 * 60 + 15;        // 09:15
 
     if (minutesNow < start || minutesNow > end) return null;
     return minutesNow <= onTime ? 'hadir' : 'terlambat';
