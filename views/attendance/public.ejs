@@ -3,52 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/css/styles.css">
-
-    <!-- Auto refresh tiap 30 detik -->
-    <meta http-equiv="refresh" content="30">
+    <title>Sistem Absensi Berbasis IoT (RFID)</title>
+    
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <!-- Font Awesome for Icons (optional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-<h1>ABSENSI SISWA</h1>
-<p style="text-align:center;">Tanggal: <strong><%= tanggal %></strong></p>
+    <!-- Header Section -->
+    <header class="header">
+        <h1><i class="fas fa-wifi"></i> Sistem Absensi Berbasis IoT (RFID)</h1>
+        <p class="subtitle">
+            <i class="fas fa-users"></i> Public Attendance View
+        </p>
+        
+        <!-- Live Clock Display -->
+        <div class="clock-container">
+            <div class="clock-box">
+                <div class="label">Tanggal</div>
+                <div class="value" id="current-date"><!-- JS will populate --></div>
+            </div>
+            <div class="clock-box">
+                <div class="label">Waktu</div>
+                <div class="value" id="current-time"><!-- JS will populate --></div>
+            </div>
+        </div>
+    </header>
 
-<table border="1" width="90%" align="center">
-    <tr>
-        <th>No</th>
-        <th>Nama Siswa</th>
-        <th>Kelas</th>
-        <th>Status</th>
-        <th>Jam Absen</th>
-    </tr>
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Info Bar -->
+        <div class="info-bar">
+            <div class="date-display">
+                <i class="fas fa-calendar-alt"></i> 
+                Tanggal Absensi: <strong><%= tanggal %></strong>
+            </div>
+            <div class="refresh-info" id="last-refresh">
+                <i class="fas fa-sync-alt"></i> Auto-refresh setiap 5 detik
+            </div>
+        </div>
 
-    <% data.forEach((row, index) => { %>
-    <tr>
-        <td><%= index + 1 %></td>
-        <td><%= row.nama_siswa %></td>
-        <td><%= row.nama_kelas %></td>
+        <!-- Attendance Table Container -->
+        <div class="table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Status</th>
+                        <th>Waktu Absen</th>
+                    </tr>
+                </thead>
+                <tbody id="attendance-table-body">
+                    <% data.forEach((row, index) => { %>
+                    <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= row.nama_siswa %></td>
+                        <td><%= row.nama_kelas %></td>
+                        
+                        <!-- Status with CSS classes for badge styling -->
+                        <td>
+                            <% if (!row.status) { %>
+                                <span class="status-cell status-belum-hadir">BELUM HADIR</span>
+                            <% } else if (row.status === 'hadir') { %>
+                                <span class="status-cell status-hadir">HADIR</span>
+                            <% } else if (row.status === 'terlambat') { %>
+                                <span class="status-cell status-terlambat">TERLAMBAT</span>
+                            <% } else { %>
+                                <span class="status-cell"><%= row.status %></span>
+                            <% } %>
+                        </td>
 
-        <td>
-            <% if (!row.status) { %>
-                <span style="color:red;">BELUM HADIR</span>
-            <% } else if (row.status === 'hadir') { %>
-                <span style="color:green;">HADIR</span>
-            <% } else { %>
-                <span style="color:orange;">TERLAMBAT</span>
-            <% } %>
-        </td>
+                        <td>
+                            <%= row.jam_masuk ? row.jam_masuk : '-' %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+            
+            <!-- Loading Indicator -->
+            <div class="loading-indicator" id="loading-indicator">
+                <div class="loading-spinner"></div>
+                <p>Memuat data...</p>
+            </div>
+        </div>
 
-        <td>
-            <%= row.jam_masuk ? row.jam_masuk : '-' %>
-        </td>
-    </tr>
-    <% }) %>
-</table>
+    </main>
 
-<footer style="text-align:center;margin-top:20px;">
-    <small>© Sistem Absensi RFID — Project IoT</small>
-</footer>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="system-info">
+            <span class="icon"><i class="fas fa-microchip"></i></span>
+            <span>IoT RFID Attendance System</span>
+        </div>
+        <p class="copyright">
+            &copy; <%= new Date().getFullYear() %> Sistem Absensi RFID - Project IoT
+        </p>
+    </footer>
+
+    <!-- External JavaScript -->
+    <script src="/js/public.js"></script>
 
 </body>
 </html>
+
