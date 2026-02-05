@@ -92,7 +92,7 @@ INSERT INTO siswa (uid_rfid, nis, nama_siswa, nama_tampil, id_kelas) VALUES
 ('19567129', '15661', 'Awalina Nadya Putri',          'Awalina',       1),
 ('9215d29',  '15658', 'Bagas Nur Setyo Budiarto',     'Bagas',         1),
 ('29be2b29', '15663', 'Rizki Ganang Prakoso',         'Ganang',        1),
-('f2c8bdd',  '15670', 'Apriliatman Dwi Saputro',      'Apri',   1),
+('f2c8bdd',  '15670', 'Apriliatman Dwi Saputro',      'Apri',          1),
 ('2945ac29', '15671', 'Bayu Aji Prasetya',            'Bayu',          1);
 
 -- ========================================

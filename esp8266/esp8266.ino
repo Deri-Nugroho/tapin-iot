@@ -16,11 +16,11 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ============ WIFI ============
-const char* ssid = "2D_HOME";
-const char* password = "mieayamenak";
+const char* ssid = "Redmi A1";
+const char* password = "cobabaen";
 
 // ============ SERVER ============
-const String SERVER_URL = "http://192.168.1.4:3000/api/attendance";
+const String SERVER_URL = "http://192.168.207.91:3000/api/attendance";
 WiFiClient client;
 
 // ============ NTP ============

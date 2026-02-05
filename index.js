@@ -53,9 +53,9 @@ module.exports = { db };
 function getAttendanceStatus() {
     const now = new Date();
     const minutesNow = now.getHours() * 60 + now.getMinutes();
-    const start = 5 * 60;          // 05:00
-    const onTime = 23 * 60;          // 07:00
-    const end = 23 * 60 + 15;        // 09:15
+    const start = 4 * 60;          // 05:00
+    const onTime = 4 * 60;          // 07:00
+    const end = 4 * 60 + 15;        // 09:15
 
     if (minutesNow < start || minutesNow > end) return null;
     return minutesNow <= onTime ? 'hadir' : 'terlambat';

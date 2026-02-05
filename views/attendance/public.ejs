@@ -8,8 +8,8 @@
     <!-- External Stylesheet -->
     <link rel="stylesheet" href="/css/style.css">
     
-    <!-- Font Awesome for Icons (optional) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -36,6 +36,51 @@
     <!-- Main Content -->
     <main class="main-content">
         
+        <!-- Countdown Component -->
+        <div class="countdown-container" id="countdown-container">
+            <div class="countdown-box" id="countdown-box">
+                <div class="countdown-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="countdown-text">
+                    <div class="countdown-label">Batas Waktu Absensi</div>
+                    <div class="countdown-time" id="countdown-time">--:--:--</div>
+                </div>
+            </div>
+            <div class="countdown-status" id="countdown-status">
+                <span class="status-badge badge-active">
+                    <i class="fas fa-hourglass-half"></i> Menunggu absensi...
+                </span>
+            </div>
+        </div>
+
+        <!-- Warning Banner (Highlight Risiko) -->
+        <div class="warning-banner" id="warning-banner" style="display: none;">
+            <div class="warning-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span class="warning-text" id="warning-text"></span>
+            </div>
+        </div>
+
+        <!-- System Status Panel -->
+        <div class="system-status-panel">
+            <div class="status-item">
+                <span class="status-dot online"></span>
+                <span class="status-label">RFID Reader:</span>
+                <span class="status-value">ONLINE</span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot connected"></span>
+                <span class="status-label">Server:</span>
+                <span class="status-value">CONNECTED</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon"><i class="fas fa-sync-alt"></i></span>
+                <span class="status-label">Last Update:</span>
+                <span class="status-value" id="last-update">--:--:--</span>
+            </div>
+        </div>
+
         <!-- Info Bar -->
         <div class="info-bar">
             <div class="date-display">
@@ -47,39 +92,162 @@
             </div>
         </div>
 
+        <!-- Summary Bar -->
+        <div class="summary-bar">
+            <div class="summary-item summary-total">
+                <div class="summary-icon"><i class="fas fa-users"></i></div>
+                <div class="summary-content">
+                    <div class="summary-value" id="summary-total">0</div>
+                    <div class="summary-label">Total Siswa</div>
+                </div>
+            </div>
+            <div class="summary-item summary-hadir">
+                <div class="summary-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="summary-content">
+                    <div class="summary-value" id="summary-hadir">0</div>
+                    <div class="summary-label">Hadir</div>
+                </div>
+            </div>
+            <div class="summary-item summary-terlambat">
+                <div class="summary-icon"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="summary-content">
+                    <div class="summary-value" id="summary-terlambat">0</div>
+                    <div class="summary-label">Terlambat</div>
+                </div>
+            </div>
+            <div class="summary-item summary-tidak-hadir">
+                <div class="summary-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="summary-content">
+                    <div class="summary-value" id="summary-tidak-hadir">0</div>
+                    <div class="summary-label">Tidak Hadir</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Section -->
+        <div class="filter-section">
+            <!-- Smart Time Legend (Tooltip Info) -->
+            <div class="time-legend">
+                <div class="tooltip-container">
+                    <i class="fas fa-info-circle info-icon"></i>
+                    <div class="tooltip-content">
+                        <strong>Status dihitung otomatis berdasarkan waktu sistem:</strong>
+                        <div class="tooltip-row"><span class="tooltip-dot hadir-dot"></span> Hadir → Tap ≤ 07:15</div>
+                        <div class="tooltip-row"><span class="tooltip-dot terlambat-dot"></span> Terlambat → Tap 07:16 – 09:15</div>
+                        <div class="tooltip-row"><span class="tooltip-dot tidak-dot"></span> Tidak Hadir → Tidak tap hingga 09:15</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Input (Search Cepat) -->
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="student-search" class="search-input" placeholder="Cari nama siswa...">
+            </div>
+
+            <!-- Status Filter -->
+            <div class="filter-group">
+                <div class="filter-label">
+                    <i class="fas fa-filter"></i> Filter:
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">
+                        <span class="filter-icon">📋</span>
+                        Semua
+                        <span class="filter-count" id="filter-count-all">0</span>
+                    </button>
+                    <button class="filter-btn filter-hadir" data-filter="hadir">
+                        <span class="filter-icon">🟢</span>
+                        Hadir
+                        <span class="filter-count" id="filter-count-hadir">0</span>
+                    </button>
+                    <button class="filter-btn filter-terlambat" data-filter="terlambat">
+                        <span class="filter-icon">🟠</span>
+                        Terlambat
+                        <span class="filter-count" id="filter-count-terlambat">0</span>
+                    </button>
+                    <button class="filter-btn filter-belum" data-filter="belum">
+                        <span class="filter-icon">⚪</span>
+                        Belum Hadir
+                        <span class="filter-count" id="filter-count-belum">0</span>
+                    </button>
+                    <button class="filter-btn filter-tidak" data-filter="tidak">
+                        <span class="filter-icon">🔴</span>
+                        Tidak Hadir
+                        <span class="filter-count" id="filter-count-tidak">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Progress Bar -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-label"><i class="fas fa-chart-pie"></i> Progres Absensi</span>
+                <span class="progress-count" id="progress-count">0 / 0 siswa hadir</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-percentage" id="progress-percentage">0%</div>
+            </div>
+        </div>
+
+        <!-- Freeze Badge (shown after cutoff) -->
+        <div class="freeze-badge" id="freeze-badge" style="display: none;">
+            <i class="fas fa-lock"></i>
+            <span>Data absensi dikunci</span>
+        </div>
+
         <!-- Attendance Table Container -->
         <div class="table-container">
             <table class="attendance-table">
                 <thead>
                     <tr>
-                        <th>No</th>
-                        <th>Nama</th>
-                        <th>Kelas</th>
-                        <th>Status</th>
-                        <th>Waktu Absen</th>
+                        <th class="text-center" style="width: 50px;">No</th>
+                        <th class="sortable" data-sort="nama">
+                            <div class="th-content">
+                                <span><i class="fas fa-user"></i> Nama</span>
+                                <span class="sort-indicator" id="sort-nama"></span>
+                            </div>
+                        </th>
+                        <th><i class="fas fa-school"></i> Kelas</th>
+                        <th class="sortable" data-sort="status">
+                            <div class="th-content">
+                                <span><i class="fas fa-flag"></i> Status</span>
+                                <span class="sort-indicator" id="sort-status"></span>
+                            </div>
+                        </th>
+                        <th class="sortable" data-sort="waktu">
+                            <div class="th-content">
+                                <span><i class="fas fa-clock"></i> Waktu Absen</span>
+                                <span class="sort-indicator" id="sort-waktu"></span>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="attendance-table-body">
                     <% data.forEach((row, index) => { %>
-                    <tr>
-                        <td><%= index + 1 %></td>
-                        <td><%= row.nama_siswa %></td>
+                    <tr data-status="<%= row.status ? row.status.toLowerCase() : 'belum-hadir' %>">
+                        <td class="text-center row-number"><%= index + 1 %></td>
+                        <td class="student-name"><%= row.nama_siswa %></td>
                         <td><%= row.nama_kelas %></td>
                         
                         <!-- Status with CSS classes for badge styling -->
                         <td>
                             <% if (!row.status) { %>
-                                <span class="status-cell status-belum-hadir">BELUM HADIR</span>
+                                <span class="status-cell status-belum-hadir" data-status="belum-hadir">BELUM HADIR</span>
                             <% } else if (row.status === 'hadir') { %>
-                                <span class="status-cell status-hadir">HADIR</span>
+                                <span class="status-cell status-hadir" data-status="hadir">HADIR</span>
                             <% } else if (row.status === 'terlambat') { %>
-                                <span class="status-cell status-terlambat">TERLAMBAT</span>
+                                <span class="status-cell status-terlambat" data-status="terlambat">TERLAMBAT</span>
                             <% } else { %>
-                                <span class="status-cell"><%= row.status %></span>
+                                <span class="status-cell status-tidak-hadir" data-status="tidak-hadir"><%= row.status %></span>
                             <% } %>
                         </td>
 
-                        <td>
+                        <td class=" waktu-cell">
                             <%= row.jam_masuk ? row.jam_masuk : '-' %>
                         </td>
                     </tr>
@@ -91,6 +259,12 @@
             <div class="loading-indicator" id="loading-indicator">
                 <div class="loading-spinner"></div>
                 <p>Memuat data...</p>
+            </div>
+            
+            <!-- No Data Message -->
+            <div class="no-data-message" id="no-data-message" style="display: none;">
+                <i class="fas fa-search"></i>
+                <p>Tidak ada data yang sesuai dengan filter</p>
             </div>
         </div>
 
