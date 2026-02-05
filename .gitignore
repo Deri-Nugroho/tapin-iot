@@ -1,4 +1,5 @@
 package-lock.json
 node_modules/*
 crud_db.sql
+esp8266
 .env
